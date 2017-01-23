@@ -57,7 +57,7 @@ function create_config()
       enabled_lang = {
          "english_lang"
       },
-      our_id = {0},
+      our_id = {186280031},
       sudo_users = {our_id}
    }
    serialize_to_file(config, './data/config.lua')
@@ -255,7 +255,6 @@ function match_plugin(plugin, plugin_name, msg)
       end
    end
 end
-
-our_id = 0
+our_id = 186280031
 now = os.time()
 math.randomseed(now)
