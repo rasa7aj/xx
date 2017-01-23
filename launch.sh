@@ -17,17 +17,17 @@ lualibs=(
 'serpent'
 )
 
+today=`date +%F`
+
 function download_libs_lua() {
-   today=`date +%F`
    if [[ ! -d "logs" ]]; then mkdir logs; fi
    if [[ -f "logs/logluarocks_${today}.txt" ]]; then rm logs/logluarocks_${today}.txt; fi
-   local i file
-   for i in ${!lualibs[@]}; do
-      printf "\rDBTeam: downloading libs... [${i}/${#lualibs[@]}]\t${lualibs[i]}                  "
+   local i
+   for ((i=0;i<${#lualibs[@]};i++)); do
+      printf "\rDBTeam: downloading libs... [$(($i+1))/${#lualibs[@]}] ${lualibs[$i]}                       "
       ./.luarocks/bin/luarocks install ${lualibs[$i]} &>> logs/logluarocks_${today}.txt
    done
    sleep 0.2
-   printf "\rDBTeam: downloading libs... [11/11]"
    printf "\nLogfile created: `pwd`/logs/logluarocks_${today}.txt\nDone\n"
    rm -rf luarocks-2.2.2*
 }
@@ -57,10 +57,17 @@ function update() {
 
 function configure() {
    dir=`pwd`
-   wget http://luarocks.org/releases/luarocks-2.2.2.tar.gz
-   tar zxpf luarocks-2.2.2.tar.gz
+   wget http://luarocks.org/releases/luarocks-2.2.2.tar.gz &>/dev/null
+   tar zxpf luarocks-2.2.2.tar.gz &>/dev/null
    cd luarocks-2.2.2
-   ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config; make bootstrap; cd ..; rm -rf luarocks*
+   if [[ ${1} == "--no-null" ]]; then
+      ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config
+      make bootstrap
+   else
+      ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config &>/dev/null
+      make bootstrap &>/dev/null
+   fi
+   cd ..; rm -rf luarocks*
    if [[ ${1} != "--no-download" ]]; then
       download_libs_lua
       printf "Downloading telegram-cli v${tgcli_version}... [0%%]"
@@ -69,9 +76,9 @@ function configure() {
       if [ ! -d "bin" ]; then mkdir bin; fi
       mv telegram-cli-${tgcli_version} ./bin/telegram-cli; chmod +x ./bin/telegram-cli
    fi
-   for i in 25 50 75 100; do
+   for ((i=0;i<101;i++)); do
       printf "\rConfiguring... [%i%%]" $i
-      sleep 0.5
+      sleep 0.007
    done
    printf "\nDone\n"
 }
@@ -89,15 +96,18 @@ function start_bot() {
 }
 
 function show_logo_slowly() {
-   declare -A logo
-   seconds="0.008"
-   logo[1]=" ____  ____ _____"
-   logo[2]="|    \|  _ )_   _|___ ____   __  __"
-   logo[3]="| |_  )  _ \ | |/ .__|  _ \_|  \/  |"
-   logo[4]="|____/|____/ |_|\____/\_____|_/\/\_|  v2"
+   seconds=0.009
+   logo=(
+   " ____  ____ _____"
+   "|    \|  _ )_   _|___ ____   __  __"
+   "| |_  )  _ \ | |/ .__|  _ \_|  \/  |"
+   "|____/|____/ |_|\____/\_____|_/\/\_|  v2"
+   "by @Josepdal @iicc1 and @Jarriz"
+   )
    printf "\033[38;5;208m\t"
-   for i in ${!logo[@]}; do
-      for x in `seq 0 ${#logo[$i]}`; do
+   local i x
+   for ((i=0;i<((${#logo[@]}+1)); i++)); do
+      for ((x=0;x<${#logo[$i]};x++)); do
          printf "${logo[$i]:$x:1}"
          sleep $seconds
       done
