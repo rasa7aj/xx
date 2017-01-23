@@ -29,10 +29,10 @@ local function run(msg, matches)
 end
 
 return {
-  patterns = {
-  	"^[!/#](admin)$",
-    "^[!/#](mod)$",
-    "^[!/#](user)$"
-  },
-  run = run
+	patterns = {
+		"^[!/#](admin)$",
+		"^[!/#](mod)$",
+		"^[!/#](user)$"
+	},
+	run = run
 }

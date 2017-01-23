@@ -57,74 +57,74 @@ local function pre_process(msg)
 		return msg
 	end
 	if msg.text then
-    	if redis:get("settings:spam:" .. msg.to.id) then
-	    	local list = require("data/spam_data")
-	    	local blacklist = redis:get("settings:setspam:" .. msg.to.id) or "default"
-		    for number, pattern in pairs(list.blacklist[blacklist]) do
-		        local matches = match_pattern(pattern, msg.text)
-		        if matches then
-		        	reply_msg(msg.to.id, lang_text(msg.to.id, 'user') .. " *" .. msg.from.username .. "* (" .. msg.from.id .. ") " .. lang_text(msg.to.id, 'isSpamming'), msg.id, 'md')
-		            delete_msg(msg.to.id, msg.id)
-		            msg.text = ""
-		            return msg
-		        end
-		    end
+		if redis:get("settings:spam:" .. msg.to.id) then
+			local list = require("data/spam_data")
+			local blacklist = redis:get("settings:setspam:" .. msg.to.id) or "default"
+			for number, pattern in pairs(list.blacklist[blacklist]) do
+				local matches = match_pattern(pattern, msg.text)
+				if matches then
+					reply_msg(msg.to.id, lang_text(msg.to.id, 'user') .. " *" .. msg.from.username .. "* (" .. msg.from.id .. ") " .. lang_text(msg.to.id, 'isSpamming'), msg.id, 'md')
+					delete_msg(msg.to.id, msg.id)
+					msg.text = ""
+					return msg
+				end
+			end
 		end
 	elseif msg.photo then
-        if redis:get("settings:photos:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.sticker then
-        if redis:get("settings:stickers:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.audio then
-        if redis:get("settings:audios:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.voice then
-       	if redis:get("settings:voice:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.gif then
-        if redis:get("settings:gifs:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.service then -- Only group creator can delete this messages
-        if redis:get("settings:tgservices:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.video then
-        if redis:get("settings:videos:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.document then
-        if redis:get("settings:documents:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.id)
-        end
-    elseif msg.forward then
-        if redis:get("settings:forward:" .. msg.to.id) then
-        	delete_msg(msg.to.id, msg.forward.msg_id)
-        end
-    end
-    if redis:get("settings:flood:" .. msg.to.id) then
-	    local maxFlood = tonumber(redis:get("settings:maxFlood:" .. msg.to.id)) or 5
-	    local floodTime = tonumber(redis:get("settings:floodTime:" .. msg.to.id)) or 3
-	    local hash = 'flood:'..msg.from.id..':'..msg.to.id..':msg-num'
-	    local msgs = tonumber(redis:get(hash) or 0)
-	    if msgs > maxFlood then
-	        local user = msg.from.id
-	        local chat = msg.to.id
-	        local username = msg.from.username or "username"
-	        if not redis:get("settings:flood:user:" .. msg.from.id) then
-	        	send_msg(msg.to.id, lang_text(chat, 'user')..' @'.. username ..' ('..msg.from.id..') ' .. lang_text(chat, 'isFlooding'), 'md')
-	        end
-	        redis:setex("settings:flood:user:" .. msg.from.id, 60, true)
-	        --kick_user(msg.to.id, msg.from.id)
-	        msg.text = ""
-		    return msg
-	    end
-	    redis:setex(hash, floodTime, msgs+1)
+		if redis:get("settings:photos:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.sticker then
+		if redis:get("settings:stickers:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.audio then
+		if redis:get("settings:audios:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.voice then
+		if redis:get("settings:voice:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.gif then
+		if redis:get("settings:gifs:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.service then -- Only group creator can delete this messages
+		if redis:get("settings:tgservices:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.video then
+		if redis:get("settings:videos:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.document then
+		if redis:get("settings:documents:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.id)
+		end
+	elseif msg.forward then
+		if redis:get("settings:forward:" .. msg.to.id) then
+			delete_msg(msg.to.id, msg.forward.msg_id)
+		end
+	end
+	if redis:get("settings:flood:" .. msg.to.id) then
+		local maxFlood = tonumber(redis:get("settings:maxFlood:" .. msg.to.id)) or 5
+		local floodTime = tonumber(redis:get("settings:floodTime:" .. msg.to.id)) or 3
+		local hash = 'flood:'..msg.from.id..':'..msg.to.id..':msg-num'
+		local msgs = tonumber(redis:get(hash) or 0)
+		if msgs > maxFlood then
+			local user = msg.from.id
+			local chat = msg.to.id
+			local username = msg.from.username or "username"
+			if not redis:get("settings:flood:user:" .. msg.from.id) then
+				send_msg(msg.to.id, lang_text(chat, 'user')..' @'.. username ..' ('..msg.from.id..') ' .. lang_text(chat, 'isFlooding'), 'md')
+			end
+			redis:setex("settings:flood:user:" .. msg.from.id, 60, true)
+			--kick_user(msg.to.id, msg.from.id)
+			msg.text = ""
+			return msg
+		end
+		redis:setex(hash, floodTime, msgs+1)
 	end
 	return msg
 end
@@ -132,13 +132,13 @@ end
 local function run(msg, matches)
 	if permissions(msg.from.id, msg.to.id, "settings") then
 		if matches[1] == 'lang' then
-		    if permissions(msg.from.id, msg.to.id, 'set_lang') then
-		        hash = 'langset:'..msg.to.id
-		        redis:set(hash, matches[2])
-		        return lang_text(msg.to.id, 'langUpdated')..string.upper(matches[2])
-		    else
-		        return '🚫 '..lang_text(msg.to.id, 'require_sudo')
-		    end
+			if permissions(msg.from.id, msg.to.id, 'set_lang') then
+				hash = 'langset:'..msg.to.id
+				redis:set(hash, matches[2])
+				return lang_text(msg.to.id, 'langUpdated')..string.upper(matches[2])
+			else
+				return '🚫 '..lang_text(msg.to.id, 'require_sudo')
+			end
 		elseif matches[1]:lower() == "settings" then
 			local settings = "*" .. lang_text(msg.to.id, 'groupSettings') .. ":*\n"
 			-- Check TgServices
@@ -155,9 +155,9 @@ local function run(msg, matches)
 			end
 			-- Check Icon/Title
 			--if redis:get("settings:icontitle:" .. msg.to.id) then
-				--settings = settings .. "`>` *" .. lang_text(msg.to.id, 'icontitle') .. ":* `" .. lang_text(msg.to.id, 'noAllowed') .. "`\n"
+			--settings = settings .. "`>` *" .. lang_text(msg.to.id, 'icontitle') .. ":* `" .. lang_text(msg.to.id, 'noAllowed') .. "`\n"
 			--else
-				--settings = settings .. "`>` *" .. lang_text(msg.to.id, 'icontitle') .. ":* `" .. lang_text(msg.to.id, 'allowed') .. "`\n"
+			--settings = settings .. "`>` *" .. lang_text(msg.to.id, 'icontitle') .. ":* `" .. lang_text(msg.to.id, 'allowed') .. "`\n"
 			--end
 			-- Check Language
 			if redis:get("langset:" .. msg.to.id) then
@@ -298,13 +298,13 @@ local function run(msg, matches)
 				redis:del("settings:invite:" .. msg.to.id)
 				send_msg(msg.to.id, lang_text(msg.to.id, 'inviteT'), 'md')
 			end
-		--elseif matches[1] == "info" then
+			--elseif matches[1] == "info" then
 			--if matches[2] == 'off' then
-				--redis:set("settings:icontitle:" .. msg.to.id, true)
-				--send_msg(msg.to.id, lang_text(msg.to.id, 'noInfoT'), 'md')
+			--redis:set("settings:icontitle:" .. msg.to.id, true)
+			--send_msg(msg.to.id, lang_text(msg.to.id, 'noInfoT'), 'md')
 			--elseif matches[2] == 'on' then
-				--redis:del("settings:icontitle:" .. msg.to.id)
-				--send_msg(msg.to.id, lang_text(msg.to.id, 'infoT'), 'md')
+			--redis:del("settings:icontitle:" .. msg.to.id)
+			--send_msg(msg.to.id, lang_text(msg.to.id, 'infoT'), 'md')
 			--end
 		elseif matches[1] == "photos" then
 			if matches[2] == 'off' then
@@ -502,7 +502,7 @@ local function run(msg, matches)
 end
 
 return {
-  	patterns = {
+	patterns = {
 		'^[!/#]([Ss]ettings)$',
 		'^[!/#](lang) (.*)$',
 		'^[!/#](tgservices) (.*)$',
@@ -535,7 +535,7 @@ return {
 		'^[!/#]([Ss]et[Rr]ules) (.*)$',
 		'^[!/#]([Rr]em[Rr]ules)$',
 		'^[!/#]([Nn]o[Rr]ules)$'
-  	},
-  	run = run,
-  	pre_process = pre_process
+	},
+	run = run,
+	pre_process = pre_process
 }
